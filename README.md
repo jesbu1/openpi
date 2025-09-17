@@ -1,4 +1,4 @@
-# Instructions for training on LIBERO:
+# Instructions for Training Pi-0 on BRIDGE with PEEK:
 First follow the repo install instructions.
 Setup UV in a virtual environment in this repo before uv installing things.
 Make sure conda is deactivated!!!!!
@@ -8,77 +8,23 @@ Make sure conda is deactivated!!!!!
 uv venv
 source .venv/bin/activate
 GIT_LFS_SKIP_SMUDGE=1 uv sync
-uv pip install tensorflow tensorflow_datasets shapely openai # openai is for the maskedvla evaluation
-uv pip install git+https://github.com/memmelma/vila_utils.git
+uv pip install tensorflow tensorflow_datasets shapely openai # openai is for the PEEK evaluation
+uv pip install git+https://github.com/memmelma/vila_utils.git # TODO: modify the vila_utils
 ```
 
-#### Modified LIBERO Dataset:
-Follow the instructions in my openvla repo to install and generate the modified LIBERO dataset: [here](https://github.com/jesbu1/openvla).
-
-There are two ways to convert the LIBERO dataset to a LeRobot dataset:
-
-### Option 1: Basic Conversion
-Convert the basic modified LIBERO dataset to a LeRobot dataset:
+### Download the PEEK dataset
 ```bash
-uv run examples/libero/convert_libero_data_to_lerobot.py --data_dir /home/jeszhang/tensorflow_datasets/
+uv run python -c "from lerobot.common.datasets.lerobot_dataset import LeRobotDataset; dataset = LeRobotDataset('jesbu1/bridge_v2_lerobot_pathmask')"
 ```
 
-### Option 2: Conversion with Path Masks and Subtasks
-For more advanced training with path masks and subtask instructions, you can use the following script. note that the data_dir expects the data dir of the OpenVLA processed hdf5 LIBERO data, not the tensorflow dataset. Download from [here](https://huggingface.co/datasets/jesbu1/libero_90_openvla_processed).
-```bash
-uv run examples/libero/convert_pathmask_libero_data_to_lerobot.py --data_dir /home1/jessez/scratch_data/libero_openvla_processed_datasets --path_and_mask_file_dir /home1/jessez/project2_data/libero_90_processed_256 
-```
-
-This script supports several additional options:
-- `--use_subtask_instructions`: Divides episodes by subtask instructions instead of using full task instructions
-- `--push_to_hub`: Pushes the processed dataset to Hugging Face Hub
-- `--return_full_path_mask`: Uses full trajectory paths and masks instead of the subtask path masks
-
-The path mask conversion relies on annotation files containing masks, paths, and subtask information.
-
-I've already processed the training stats and norms in `assets/pi0_libero_low_mem_finetune/jesbu1/libero_90_lerobot/norm_stats.json`. If not running `pi0_libero_low_mem_finetune`, you can copy the `norm_stats.json` file to the `assets/CONFIG_NAME/jesbu1/libero_90_lerobot/` directory.
-
-## Training π₀ with LoRA
-
-You may need to change the `repo_id` in the `src/openpi/training/config.py` file for the `pi0_libero_low_mem_finetune` config to the `jesbu1/libero_90_lerobot` dataset and where it is on your machine. It should by default be in `/home/$USER/.cache/huggingface/lerobot/jesbu1/libero_90_lerobot/`. You can also change the `local_files_only` flag to `False` in the `src/openpi/training/config.py` file to use the local dataset.
-
-### Basic Training
-Then train:
-```bash
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.9 uv run scripts/train.py pi0_libero_low_mem_finetune --exp-name=EXP_NAME --overwrite
-```
-
-### Training with Validation
-To train with validation, you can specify a validation dataset in the config. The validation dataset should be a separate LeRobot dataset that follows the same format as your training data. The validation will run every `validation_interval` steps (default 1000) and log the validation metrics to wandb.
-
-Example config modification:
-```python
-config = TrainConfig(
-    # ... other config ...
-    validation_data=LeRobotLiberoDataConfig(
-        repo_id="jesbu1/libero_90_lerobot_val",  # Your validation dataset
-        base_config=DataConfig(
-            local_files_only=True,
-            prompt_from_task=True,
-        ),
-    ),
-    validation_interval=1000,  # Run validation every 1000 steps
-)
-```
-
-### Training with Path Masks
+### Training with PEEK
 You can also train with path masks by running the following:
 ```bash
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_libero_low_mem_finetune_path --exp-name=EXP_NAME --overwrite
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_libero_low_mem_finetune_masked --exp-name=EXP_NAME --overwrite
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_libero_low_mem_finetune_path_masked --exp-name=EXP_NAME --overwrite
-
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95  uv run scripts/train.py pi0_libero_low_mem_finetune_path_no_proprio --exp-name=EXP_NAME --overwrite
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95  uv run scripts/train.py pi0_libero_low_mem_finetune_masked_no_proprio --exp-name=EXP_NAME --overwrite
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95  uv run scripts/train.py pi0_libero_low_mem_finetune_path_masked_no_proprio --exp-name=EXP_NAME --overwrite
+XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge --exp-name=EXP_NAME --overwrite [--resume if you want to resume training]
+XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge_1_cam_path_masked --exp-name=EXP_NAME --overwrite [--resume if you want to resume training]
 ```
 
-## Evaluation of LIBERO
+### Hosting the Server for Evaluation
 Once done training, you can evaluate the model by running the following command to initialize a policy server:
 ```bash
 CUDA_VISIBLE_DEVICES=1 uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_libero_low_mem_finetune --policy.dir=checkpoints/pi0_libero_90_LoRA_finetune_8gpu/29999/ 
