@@ -34,6 +34,7 @@ XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge_1_ca
 If you want to change the # of GPUs or batch size, modify the `fsdp_devices` and `batch_size` in the config file for `pi0_lora_bridge_1_cam_path_masked` or `pi0_lora_bridge_1_cam` at `src/openpi/training/config.py`.
 You can also change the `num_workers` in `src/openpi/training/config.py` to change the # of workers for data loading.
 
+# TODO: add instructions for evaluation
 ## Hosting the Server for Evaluation
 Once done training, you can evaluate the model by running the following command to initialize a policy server:
 ```bash
@@ -42,44 +43,8 @@ CUDA_VISIBLE_DEVICES=1 uv run scripts/serve_policy.py policy:checkpoint --policy
 uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked --policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/
 ```
 
-In a separate terminal, run the following command to run the Libero evaluation script:
-```bash
-# Create virtual environment
-conda deactivate
-uv venv --python 3.8 examples/libero/.venv
-source examples/libero/.venv/bin/activate
-uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt --extra-index-url https://download.pytorch.org/whl/cu113 --index-strategy=unsafe-best-match
-uv pip install -e packages/openpi-client
-uv pip install -e third_party/libero
-uv pip install -e ../vila_utils # from https://github.com/memmelma/vila_utils
-uv pip install wandb
-uv pip install openai shapely # for pathmask
-export PYTHONPATH=$PYTHONPATH:$PWD/third_party/libero
 
-# Run the simulation
-python examples/libero/main.py --args.task_suite_name=libero_10 --args.draw_path --args.draw_mask --args.vlm_server_ip="https://whippet-pet-singularly.ngrok.app" --args.vlm_query_frequency=20
-python examples/libero/main.py --args.task_suite_name=libero_spatial --args.draw_path --args.draw_mask --args.vlm_server_ip="https://whippet-pet-singularly.ngrok.app" --args.vlm_query_frequency=20
-python examples/libero/main.py --args.task_suite_name=libero_object --args.draw_path --args.draw_mask --args.vlm_server_ip="https://whippet-pet-singularly.ngrok.app" --args.vlm_query_frequency=20
-python examples/libero/main.py --args.task_suite_name=libero_goal --args.draw_path --args.draw_mask --args.vlm_server_ip="https://whippet-pet-singularly.ngrok.app" --args.vlm_query_frequency=20
-
-python examples/libero/main.py --args.task_suite_name=libero_spatial --args.draw_path --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio"
-python examples/libero/main.py --args.task_suite_name=libero_object --args.draw_path --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio"
-python examples/libero/main.py --args.task_suite_name=libero_goal --args.draw_path --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio"
-python examples/libero/main.py --args.task_suite_name=libero_10 --args.draw_path --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio"
-
-
-python examples/libero/main.py --args.task_suite_name=libero_spatial --args.draw_path --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8003
-python examples/libero/main.py --args.task_suite_name=libero_object --args.draw_path --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8003
-python examples/libero/main.py --args.task_suite_name=libero_goal --args.draw_path --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8003
-python examples/libero/main.py --args.task_suite_name=libero_10 --args.draw_path --args.vlm_server_ip="http://0.0.0.0:8002" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8003
-
-python examples/libero/main.py --args.task_suite_name=libero_spatial --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8004" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8005
-python examples/libero/main.py --args.task_suite_name=libero_object --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8004" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8005
-python examples/libero/main.py --args.task_suite_name=libero_goal --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8004" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8005
-python examples/libero/main.py --args.task_suite_name=libero_10 --args.draw_mask --args.vlm_server_ip="http://0.0.0.0:8004" --args.vlm_query_frequency=20 --args.wandb_name_suffix="no_proprio" --args.port 8005
-```
-
-# openpi
+# openpi original README
 
 openpi holds open-source models and packages for robotics, published by the [Physical Intelligence team](https://www.physicalintelligence.company/).
 
