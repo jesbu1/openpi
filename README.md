@@ -1,8 +1,6 @@
 # Instructions for Training Pi-0 on BRIDGE with PEEK:
-First follow the repo install instructions.
-Setup UV in a virtual environment in this repo before uv installing things.
-Make sure conda is deactivated!!!!!
-#### Basic Install:
+We detail basic instructions below, and the original Pi-0 README is below this section.
+## Basic Install:
 
 ```bash
 uv venv
@@ -12,28 +10,36 @@ uv pip install tensorflow tensorflow_datasets shapely openai # openai is for the
 uv pip install git+https://github.com/memmelma/vila_utils.git # TODO: modify the vila_utils
 ```
 
+## Training Instructions for PEEK or Pi-0 on BRIDGE-v2
+
+Follow the below instructions to train Pi-0 on BRIDGE-v2 with PEEK.
+If you want to just serve the policy, skip to the next section.
+
 ### Download the PEEK dataset
 ```bash
 uv run python -c "from lerobot.common.datasets.lerobot_dataset import LeRobotDataset; dataset = LeRobotDataset('jesbu1/bridge_v2_lerobot_pathmask')"
 ```
 
 ### Training with PEEK
-You can also train with path masks by running the following:
+You can train with PEEK on 4 GPUs and batch size of 256 (should work for 4 48GB GPUs) by running the following:
 ```bash
-XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge --exp-name=EXP_NAME --overwrite [--resume if you want to resume training]
 XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge_1_cam_path_masked --exp-name=EXP_NAME --overwrite [--resume if you want to resume training]
 ```
 
-### Hosting the Server for Evaluation
+You can train the original Pi-0 on BRIDGE-v2 with PEEK on 4 GPUs and batch size of 256 (should work for 4 48GB GPUs) by running the following:
+```bash
+XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge_1_cam --exp-name=EXP_NAME --overwrite [--resume if you want to resume training]
+```
+
+If you want to change the # of GPUs or batch size, modify the `fsdp_devices` and `batch_size` in the config file for `pi0_lora_bridge_1_cam_path_masked` or `pi0_lora_bridge_1_cam` at `src/openpi/training/config.py`.
+You can also change the `num_workers` in `src/openpi/training/config.py` to change the # of workers for data loading.
+
+## Hosting the Server for Evaluation
 Once done training, you can evaluate the model by running the following command to initialize a policy server:
 ```bash
-CUDA_VISIBLE_DEVICES=1 uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_libero_low_mem_finetune --policy.dir=checkpoints/pi0_libero_90_LoRA_finetune_8gpu/29999/ 
+CUDA_VISIBLE_DEVICES=1 uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked --policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/ 
 
-uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_libero_low_mem_finetune_path --policy.dir=checkpoints/pi0_libero_low_mem_finetune_path/pi0_libero_90_path_bs164_rdp/35000/
-
-uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_libero_low_mem_finetune_path_no_proprio --policy.dir=checkpoints/pi0_libero_low_mem_finetune_path_no_proprio/pi0_libero_90_path_no_proprio_bs128/27000
-
-uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_libero_low_mem_finetune_masked_no_proprio --policy.dir=checkpoints/pi0_libero_low_mem_finetune_masked_no_proprio/pi0_libero_90_masked_no_proprio_bs128/28000
+uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked --policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/
 ```
 
 In a separate terminal, run the following command to run the Libero evaluation script:
