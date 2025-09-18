@@ -21,6 +21,9 @@ uv run python -c "from lerobot.common.datasets.lerobot_dataset import LeRobotDat
 ```
 
 ### Training with PEEK
+Pi-0+PEEK and Pi-0 are trained with LoRA on BRIDGE-v2.
+We trained full fine-tuning for pi-0 initially, but it was not noticeably different than LoRA, so we provide LoRA training instructions because it requires far less memory than FFT.
+
 You can train with PEEK on 4 GPUs and batch size of 256 (should work for 4 48GB GPUs) by running the following:
 ```bash
 XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge_1_cam_path_masked --exp-name=EXP_NAME --overwrite [--resume if you want to resume training]
@@ -36,6 +39,13 @@ You can also change the `num_workers` in `src/openpi/training/config.py` to chan
 
 # TODO: add instructions for evaluation
 ## Hosting the Server for Evaluation
+Pre-trained checkpoints available via download:
+```bash
+# PEEK checkpoint
+uv run hf download jesbu1/pi0_lora_bridge_1_cam_path_masked --local-dir checkpoints/pi0_lora_bridge_1_cam_path_masked
+# Original Pi-0 checkpoint
+uv run hf download jesbu1/pi0_lora_bridge_1_cam --local-dir checkpoints/pi0_lora_bridge_1_cam
+```
 Once done training, you can evaluate the model by running the following command to initialize a policy server:
 ```bash
 CUDA_VISIBLE_DEVICES=1 uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked --policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/ 
