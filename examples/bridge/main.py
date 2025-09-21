@@ -2,7 +2,15 @@
 """Inference script for USC WidowX using openpi policy server.
 
 Example usage:
-python examples/usc_widowx/main.py --policy-server-address https://whippet-pet-singularly.ngrok.app --robot-ip localhost --robot-port 5556 --prompt "pick up the red block"
+Follow the BRIDGE dataset instructions to set up the robot: https://github.com/rail-berkeley/bridge_data_robot
+
+Example usage:
+# MAKE SURE NUMPY < 2 is installed!!!
+pip install 'numpy<2'
+pip install -e .[widowx, smolvla]
+USB_CONNECTOR_CHART=$(pwd)/usb_connector_chart.yml docker compose up --build robonet	# in bridge_data_robot
+docker compose exec robonet bash -lic "widowx_env_service --server"  # in separate window
+python examples/bridge/main.py --policy-server-address <open-pi-server-address> --robot-ip localhost --robot-port 5556 --prompt "pick up the red block"
 """
 
 import argparse

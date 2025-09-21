@@ -15,7 +15,7 @@ class Args:
     """Arguments for the serve_policy script."""
     
     # VLM image key
-    vlm_img_key: str | None = None # example, "observation.images.image_0" for WidowX
+    vlm_img_key: str = "observation.images.image_0" # example, "observation.images.image_0" for WidowX
 
     # Environment to serve the policy for. This is only used when serving default policies.
     env: EnvMode = EnvMode.ALOHA_SIM
@@ -43,13 +43,11 @@ class Args:
     vlm_draw_path: bool = True
     # VLM draw mask
     vlm_draw_mask: bool = True
-    # VLM mask ratio
-    vlm_mask_ratio: float = 0.08
 
     # Temporal ensembling parameters
     action_chunk_history_size: int = 10
     ensemble_window_size: int = 5
-    temporal_weight_decay: float = 0.5
+    temporal_weight_decay: float = 0.0
 
 
 # Default checkpoints that should be used for each environment.
@@ -76,7 +74,6 @@ def main(args: Args) -> None:
         vlm_query_frequency=args.vlm_query_frequency,
         vlm_draw_path=args.vlm_draw_path,
         vlm_draw_mask=args.vlm_draw_mask,
-        vlm_mask_ratio=args.vlm_mask_ratio,
         action_chunk_history_size=args.action_chunk_history_size,
         ensemble_window_size=args.ensemble_window_size,
         temporal_weight_decay=args.temporal_weight_decay,

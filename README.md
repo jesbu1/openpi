@@ -7,7 +7,7 @@ uv venv
 source .venv/bin/activate
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 uv pip install tensorflow tensorflow_datasets shapely openai # openai is for the PEEK evaluation
-uv pip install git+https://github.com/memmelma/vila_utils.git # TODO: modify the vila_utils
+uv pip install -e ../peek_vlm  # for PEEK vlm inference code
 ```
 
 ## Training Instructions for PEEK or Pi-0 on BRIDGE-v2
@@ -37,8 +37,8 @@ XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py pi0_lora_bridge_1_ca
 If you want to change the # of GPUs or batch size, modify the `fsdp_devices` and `batch_size` in the config file for `pi0_lora_bridge_1_cam_path_masked` or `pi0_lora_bridge_1_cam` at `src/openpi/training/config.py`.
 You can also change the `num_workers` in `src/openpi/training/config.py` to change the # of workers for data loading.
 
-# TODO: add instructions for evaluation
-## Hosting the Server for Evaluation
+# Evaluation/Runing The Models
+## Download Checkpoints
 Pre-trained checkpoints available via download:
 ```bash
 # PEEK checkpoint
@@ -46,12 +46,50 @@ uv run hf download jesbu1/pi0_lora_bridge_1_cam_path_masked --local-dir checkpoi
 # Original Pi-0 checkpoint
 uv run hf download jesbu1/pi0_lora_bridge_1_cam --local-dir checkpoints/pi0_lora_bridge_1_cam
 ```
-Once done training, you can evaluate the model by running the following command to initialize a policy server:
+Once done training/downloading, you can evaluate the model:
+### VLM Server 
+First, make sure you have the PEEK VLM server running if you're using the PEEK checkpoint (no need for original Pi-0).
 ```bash
-CUDA_VISIBLE_DEVICES=1 uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked --policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/ 
-
-uv run scripts/serve_policy.py policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked --policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/
+cd ../peek_vlm
+conda activate peek_vlm
+python scripts/server.py --host localhost --port 8000 --model_path memmelma/vila_3b_path_mask_fast
 ```
+### Run the Policy Server
+Now, run the following command in this repo to initialize a policy server.
+This assumes you are running the PEEK VLM server on localhost:8000 and want to serve the policy on localhost:8001.
+```bash
+# for PEEK
+uv run scripts/serve_policy_vlm.py --port 8001 \
+--vlm-query-frequency=5 \
+--vlm-server-ip=http://localhost:8000 \
+policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked \
+--policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/ 
+
+# for original Pi-0
+uv run scripts/serve_policy_vlm.py --port 8001 \
+--no-vlm-draw-mask \
+--no-vlm-draw-path \
+--vlm-server-ip=http://localhost:8000 \
+policy:checkpoint \
+--policy.config=pi0_lora_bridge_1_cam \
+--policy.dir=checkpoints/pi0_lora_bridge_1_cam/29999/ 
+```
+If you plan on serving the policy with a different machine than the one running the robot, you can use a tunneling tool like `ngrok`, `bore`, `pinggy`, `localtunnel`, etc. to host the policy server on a web-accessible address.
+
+You can also do SSH-based port forwarding instead.
+
+### Running evaluation with the WidowX Robot 
+Make sure you have the WidowX robot connected to the computer and the openpi server running.
+Follow the instructions at the top of `examples/bridge/main.py` to set up the WidowX robot environment using a new conda or venv.
+You might have to change some camera names manually depending on your WidowX setup.
+
+Then:
+```bash
+python examples/bridge/main.py --policy-server-address <policy-server-address> --robot-ip localhost --robot-port 5556 --prompt "pick up the red block"
+```
+
+# TODO: add instructions for labeling data and uploading with Huggingface
+
 
 
 # openpi original README
