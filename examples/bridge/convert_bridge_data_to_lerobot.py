@@ -56,7 +56,7 @@ RAW_DATASET_NAMES = [
 ]
 
 
-def process_path_obs(sample_img, path, path_line_size=3, apply_rdp=False):
+def process_path_obs(sample_img, path, path_line_size=2, apply_rdp=False):
     """Process path observation by drawing it onto the image."""
     height, width = sample_img.shape[:2]
 
