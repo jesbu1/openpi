@@ -37,19 +37,18 @@ def get_path_mask_from_vlm(
     assert draw_path or draw_mask
     assert current_vlm_pred is not None or vlm_server_ip is not None, "Either current_vlm_pred or vlm_server_ip must be provided"
     prompt_type = "path_mask"
-    pil_image = Image.fromarray(image)
     if not current_vlm_pred:
         # query the VLM otherwise use the provided path and mask
-        answer_pred = send_request(pil_image, task_instr, prompt_type=prompt_type, server_ip=vlm_server_ip, model_name=PEEK_VLM_NAME)
+        answer_pred = send_request(image, task_instr, prompt_type=prompt_type, server_ip=vlm_server_ip, model_name=PEEK_VLM_NAME)
     else:
         answer_pred = current_vlm_pred
 
-    H, W, _ = pil_image.shape
+    H, W, _ = image.shape
     line_size = int(min(H, W) * 0.01)
     mask_pixels = int(min(H, W) * 0.08)
 
     path_mask_image, _, _ = add_answer_to_img(
-        pil_image, answer_pred, prompt_type, line_size=line_size, add_mask=True, mask_pixels=mask_pixels
+        image, answer_pred, prompt_type, line_size=line_size, add_mask=True, mask_pixels=mask_pixels
     )
     return path_mask_image, answer_pred
 class WebsocketPolicyServer:
