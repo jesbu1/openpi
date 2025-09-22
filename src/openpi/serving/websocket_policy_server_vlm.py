@@ -20,7 +20,7 @@ from openpi_client import msgpack_numpy
 import websockets.asyncio.server
 import websockets.frames
 
-from peek_vlm import add_answer_to_img, send_request
+from peek_vlm.models.peek import add_answer_to_img, send_request
 
 POLICY_INPUT_RESOLUTION = 224
 PEEK_VLM_NAME = "vila_3b_path_mask_fast"
