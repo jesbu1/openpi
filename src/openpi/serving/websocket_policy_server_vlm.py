@@ -291,7 +291,7 @@ class WebsocketPolicyServer:
                         if self._vlm_draw_path or self._vlm_draw_mask:
                             if self._vlm_step % self._vlm_query_frequency == 0:
                                 try:
-                                    img, self.current_vlm_pred = get_path_mask_from_vlm(
+                                    img, self._vlm_current_pred = get_path_mask_from_vlm(
                                         image=original_img,
                                         task_instr=obs.get("prompt", ""),
                                         draw_path=self._vlm_draw_path,
