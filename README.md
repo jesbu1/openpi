@@ -63,7 +63,7 @@ uv run scripts/serve_policy_vlm.py --port 8001 \
 --vlm-query-frequency=5 \
 --vlm-server-ip=http://localhost:8000 \
 policy:checkpoint --policy.config=pi0_lora_bridge_1_cam_path_masked \
---policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/29999/ 
+--policy.dir=checkpoints/pi0_lora_bridge_1_cam_path_masked/pi0_lora_bridge_1_cam_path_masked/29999/ 
 
 # for original Pi-0
 uv run scripts/serve_policy_vlm.py --port 8001 \
@@ -72,7 +72,7 @@ uv run scripts/serve_policy_vlm.py --port 8001 \
 --vlm-server-ip=http://localhost:8000 \
 policy:checkpoint \
 --policy.config=pi0_lora_bridge_1_cam \
---policy.dir=checkpoints/pi0_lora_bridge_1_cam/29999/ 
+--policy.dir=checkpoints/pi0_lora_bridge_1_cam/pi0_lora_bridge_1_cam/29999/ 
 ```
 If you plan on serving the policy with a different machine than the one running the robot, you can use a tunneling tool like `ngrok`, `bore`, `pinggy`, `localtunnel`, etc. to host the policy server on a web-accessible address.
 
