@@ -23,7 +23,7 @@ import websockets.frames
 from peek_vlm.models.peek import add_answer_to_img, send_request
 
 POLICY_INPUT_RESOLUTION = 224
-PEEK_VLM_NAME = "vila_3b_path_mask_fast"
+PEEK_VLM_NAME = "peek_3b"
 
 def get_path_mask_from_vlm(
     image: np.ndarray,

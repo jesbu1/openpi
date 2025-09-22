@@ -52,7 +52,7 @@ First, make sure you have the PEEK VLM server running if you're using the PEEK c
 ```bash
 cd ../peek_vlm
 conda activate peek_vlm
-python scripts/server.py --host localhost --port 8000 --model_path memmelma/vila_3b_path_mask_fast
+python scripts/vila_server.py --host localhost --port 8000 --model_path memmelma/peek_3b
 ```
 ### Run the Policy Server
 Now, run the following command in this repo to initialize a policy server.
