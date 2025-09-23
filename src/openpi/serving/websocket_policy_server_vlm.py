@@ -326,8 +326,8 @@ class WebsocketPolicyServer:
                                 if success:
                                     # Save both the original and overlaid images for this fresh query
                                     self._save_vlm_images(obs, original_img, img, self._vlm_step)
-                                else:
-                                    img = original_img
+                        else:
+                            img = original_img
                         # Update the image in the observation
                         obs[self._vlm_img_key] = img
                         # downsample
